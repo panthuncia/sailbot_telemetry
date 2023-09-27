@@ -7,8 +7,18 @@ import select
 from threading import Thread
 import time
 from time import sleep
+from enum import Enum
 
-conntection_timeout = 1.0
+connection_timeout = 1.0
+
+class OS(Enum):
+    LINUX = 0
+    WINDOWS = 1
+
+CURRENT_OS = OS.LINUX
+if os.name == "nt":
+    CURRENT_OS=OS.WINDOWS
+
 
 class Wind:
     speed = 0
@@ -52,7 +62,10 @@ def say_hello_py(x):
 
 #create server socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+if CURRENT_OS == OS.LINUX:
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+elif CURRENT_OS == OS.WINDOWS:
+    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server_socket.bind(("0.0.0.0", 1111))  # Bind to a specific address and port
 server_socket.listen(1)
 server_socket.setblocking(0)
@@ -62,7 +75,10 @@ server_socket.settimeout(0.2)
 def connect_to_sailbot():
     # Create a socket client
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    if CURRENT_OS == OS.LINUX:
+        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+    elif CURRENT_OS == OS.WINDOWS:
+        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     # print("Creating connection")
     ip = socket.gethostbyname("sailbot.netbird.cloud")
     print("Sailbot ip is "+str(ip))
@@ -73,7 +89,7 @@ def connect_to_sailbot():
             connected = True
         except:
             print("Connection failed, retrying...")
-            sleep(conntection_timeout)
+            sleep(connection_timeout)
 
     # Receive and deserialize data from the server
     received_data_bytes = client_socket.recv(1024)
@@ -95,24 +111,17 @@ def recieve_data():
     print("Receiving data")
     last_data_time = time.time()
     while True:
-        print("Time since last: ")
-        print(time.time()-last_data_time)
-        if time.time()-last_data_time>conntection_timeout:
+        if time.time()-last_data_time>connection_timeout:
             print("Connection to sailbot timed out, reconnecting...")
             connect_to_sailbot()
-        print("Before select")
         read_sockets, write_sockets, error_sockets = select.select([server_socket], [], [], 0.2)
-        print("after select")
         for sock in read_sockets:
-            print("Before accept")
             this_client_socket, client_address = server_socket.accept()
             print(f"Accepted connection from {client_address}")
             this_client_socket.setblocking(0)
             this_client_socket.settimeout(0.2)
             # Receive and deserialize data from the server
-            print("Before recv")
             received_data_bytes = this_client_socket.recv(1024)
-            print("after recv")
             if len(received_data_bytes)>0:
                 received_data = pickle.loads(received_data_bytes)
                 print(received_data.latitude)
@@ -132,9 +141,9 @@ def main():
     comms_thread.start()
     say_hello_py('Python World!')
     eel.say_hello_js('Python World!')  # Call a Javascript function
-    if os.name == "nt":
+    if CURRENT_OS == OS.WINDOWS:
         eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron.exe', '.'])
-    else:
+    elif CURRENT_OS == OS.LINUX:
         eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron', '.'])
 
 
