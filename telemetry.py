@@ -1,12 +1,14 @@
 import threading
-
+import os
 import eel
 import pickle
 import socket
 import select
 from threading import Thread
+import time
 from time import sleep
 
+conntection_timeout = 1.0
 
 class Wind:
     speed = 0
@@ -48,32 +50,22 @@ eel.init('web')
 def say_hello_py(x):
     print('Hello from %s' % x)
 
-
-def recieve_data():
-    print("Receiving data")
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(("0.0.0.0", 1111))  # Bind to a specific address and port
-    server_socket.listen(1)
-    while True:
-        read_sockets, write_sockets, error_sockets = select.select([server_socket], [], [])
-        for sock in read_sockets:
-            client_socket, client_address = server_socket.accept()
-            print(f"Accepted connection from {client_address}")
-            # Receive and deserialize data from the server
-            received_data_bytes = client_socket.recv(1024)
-            received_data = pickle.loads(received_data_bytes)
-            print(received_data.latitude)
-            # Close the client socket
-            client_socket.close()
+#create server socket
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+server_socket.bind(("0.0.0.0", 1111))  # Bind to a specific address and port
+server_socket.listen(1)
+server_socket.setblocking(0)
+server_socket.settimeout(0.2)
 
 
-def sailbot_comms():
+def connect_to_sailbot():
     # Create a socket client
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
     # print("Creating connection")
     ip = socket.gethostbyname("sailbot.netbird.cloud")
-    # print("ip is "+str(ip))
-
+    print("Sailbot ip is "+str(ip))
     connected = False
     while not connected:
         try:
@@ -81,12 +73,15 @@ def sailbot_comms():
             connected = True
         except:
             print("Connection failed, retrying...")
-            sleep(1)
+            sleep(conntection_timeout)
 
     # Receive and deserialize data from the server
     received_data_bytes = client_socket.recv(1024)
-    received_data = pickle.loads(received_data_bytes)
-
+    if len(received_data_bytes)>0:
+        try:
+            received_data = pickle.loads(received_data_bytes)
+        except EOFError:
+            print("Unexpected EOF in data- why does this happen?")
     # print("Got data")
     # Close the client socket
     client_socket.close()
@@ -96,6 +91,38 @@ def sailbot_comms():
     for data in received_data:
         print(data)
 
+def recieve_data():
+    print("Receiving data")
+    last_data_time = time.time()
+    while True:
+        print("Time since last: ")
+        print(time.time()-last_data_time)
+        if time.time()-last_data_time>conntection_timeout:
+            print("Connection to sailbot timed out, reconnecting...")
+            connect_to_sailbot()
+        print("Before select")
+        read_sockets, write_sockets, error_sockets = select.select([server_socket], [], [], 0.2)
+        print("after select")
+        for sock in read_sockets:
+            print("Before accept")
+            this_client_socket, client_address = server_socket.accept()
+            print(f"Accepted connection from {client_address}")
+            this_client_socket.setblocking(0)
+            this_client_socket.settimeout(0.2)
+            # Receive and deserialize data from the server
+            print("Before recv")
+            received_data_bytes = this_client_socket.recv(1024)
+            print("after recv")
+            if len(received_data_bytes)>0:
+                received_data = pickle.loads(received_data_bytes)
+                print(received_data.latitude)
+            # Close the client socket
+            last_data_time = time.time()
+            this_client_socket.close()
+
+
+def sailbot_comms():
+    connect_to_sailbot()
     receive_thread = Thread(target=recieve_data, daemon=True)
     receive_thread.start()
 
@@ -105,7 +132,10 @@ def main():
     comms_thread.start()
     say_hello_py('Python World!')
     eel.say_hello_js('Python World!')  # Call a Javascript function
-    eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron.exe', '.'])
+    if os.name == "nt":
+        eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron.exe', '.'])
+    else:
+        eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron', '.'])
 
 
 if __name__ == "__main__":
