@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/electron/electron-quick-start#readme",
   "dependencies": {
+    "canvas-gauges": "^2.1.7",
     "npm": "^10.1.0"
   }
 }
