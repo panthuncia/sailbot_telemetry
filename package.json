@@ -1,31 +1,29 @@
 {
-  "name": "eelectron-quick-start",
+  "name": "WPI Sailbot Telemetry",
   "version": "1.0.0",
-  "description": "A minimal Eelectron application",
+  "description": "WPI Sailbot Telemetry",
   "main": "main.js",
   "scripts": {
     "start": "electron ."
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/electron/electron-quick-start.git"
+    "url": "git+https://github.com/wpisailbot/sailbot_telemetry"
   },
   "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo"
+    "Sailbot",
+    "WPI",
+    "Worcester Polytechnic Institute"
   ],
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "author": "WPI Sailbot 23-24",
+  "license": "Apache 2.0",
   "devDependencies": {
     "electron": "^7.3.3"
   },
   "bugs": {
-    "url": "https://github.com/electron/electron-quick-start/issues"
+    "url": "https://github.com/wpisailbot/sailbot23-24/issues"
   },
-  "homepage": "https://github.com/electron/electron-quick-start#readme",
+  "homepage": "https://github.com/wpisailbot/sailbot23-24",
   "dependencies": {
     "canvas-gauges": "^2.1.7",
     "npm": "^10.1.0"

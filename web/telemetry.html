@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Hello, World!</title>
+    <title>WPI Sailbot Telemetry</title>
     <link href="css/dashboard.css" rel="stylesheet">
     <link href="css/simple-grid.min.css" rel="stylesheet">
     <link href="css/foundation.css" rel="stylesheet">
@@ -76,8 +76,78 @@
 <!--<div id="textbox">
   <p>This is a text box overlay.</p>
 </div>-->
-<!--<div id="panel-1"
-     style="position: absolute; top: 0px; left: 200px; z-index: 1000; background-color: lightgrey; padding: 10px; border-radius: 20px; display: flex; align-items: center; overflow: auto; flex-direction: row">
+<div id="node-status-container" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 1000;">
+    <div class="node_status" id="network-comms-status">
+        <p>network_comms</p>
+    </div>
+    <div class="node_status" id="airmar-reader-status">
+        <p>airmar_reader</p>
+    </div>
+    <div class="node_status" id="battery-monitor-status">
+        <p>battery_monitor</p>
+    </div>
+    <div class="node_status" id="control-system-status">
+        <p>control_system</p>
+    </div>
+    <div class="node_status" id="pwm-controller-status">
+        <p>pwm_controller</p>
+    </div>
+    <div class="node_status" id="trim-tab-comms-status">
+        <p>trim_tab_comms</p>
+    </div>
+    <script>
+        function NetworkCommsUp(){
+            document.getElementById("network-comms-status").style.backgroundColor = "green";
+        }
+        eel.expose(NetworkCommsUp);
+        function NetworkCommsDown(){
+            document.getElementById("network-comms-status").style.backgroundColor = "red";
+        }
+        eel.expose(NetworkCommsDown);
+        function AirmarReaderUp(){
+            document.getElementById("airmar-reader-status").style.backgroundColor = "green";
+        }
+        eel.expose(AirmarReaderUp);
+        function AirmarReaderDown(){
+            document.getElementById("airmar-reader-status").style.backgroundColor = "red";
+        }
+        eel.expose(AirmarReaderDown)
+        function BatteryMonitorUp(){
+            document.getElementById("battery-monitor-status").style.backgroundColor = "green";
+        }
+        eel.expose(BatteryMonitorUp)
+        function BatteryMonitorDown(){
+            document.getElementById("battery-monitor-status").style.backgroundColor = "red";
+        }
+        eel.expose(BatteryMonitorDown);
+        function ControlSystemUp(){
+            document.getElementById("control-system-status").style.backgroundColor = "green";
+        }
+        eel.expose(ControlSystemUp);
+        function ControlSystemDown(){
+            document.getElementById("control-system-status").style.backgroundColor = "red";
+        }
+        eel.expose(ControlSystemDown);
+        function PWMControllerUp(){
+            document.getElementById("pwm-controller-status").style.backgroundColor = "green";
+        }
+        eel.expose(PWMControllerUp);
+        function PWMControllerDown(){
+            document.getElementById("pwm-controller-status").style.backgroundColor = "red";
+        }
+        eel.expose(PWMControllerDown);
+        function TrimTabCommsUp(){
+            document.getElementById("trim-tab-comms-status").style.backgroundColor = "green";
+        }
+        eel.expose(TrimTabCommsUp);
+        function TrimTabCommsDown(){
+            document.getElementById("trim-tab-comms-status").style.backgroundColor = "red";
+        }
+        eel.expose(TrimTabCommsDown);
+    </script>
+</div>
+<div id="panel-1"
+     style="position: absolute; top: 0px; left: 50%; transform: translateX(-50%); z-index: 1000; background-color: lightgrey; padding: 10px; border-radius: 20px; display: flex; align-items: center; overflow: auto; flex-direction: row">
     <div id="gauge-container">
         <canvas data-animation-duration="1500"
                 data-animation-rule="linear"
@@ -234,6 +304,6 @@
 
     eel.expose(update_speed_js);
 
-</script>-->
+</script>
 </body>
 </html>

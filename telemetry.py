@@ -28,6 +28,14 @@ class Wind:
         self.speed = speed
         self.direction = direction
 
+class NodeStates:
+    airmar_reader = 0
+    battery_monitor = 0
+    control_system = 0
+    network_comms = 0
+    pwm_controller = 0
+    serial_rc_receiver = 0
+    trim_tab_comms = 0
 
 class BoatState:
     latitude = 0
@@ -50,7 +58,10 @@ class BoatState:
     apparent_wind = Wind(0, 0)
     pitch = 0
     roll = 0
+    node_states = NodeStates()
 
+
+current_node_states = NodeStates()
 
 # Set web files folder
 eel.init('web')
@@ -138,7 +149,7 @@ def sailbot_comms():
 def update_ui():
     i=0
     while True:
-        print("Drawing line...")
+        eel.NetworkCommsUp()
         if(i%2==0):
             eel.DrawLines([[51.508, -0.11, 51.503, -0.06]])
         else:
