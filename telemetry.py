@@ -135,10 +135,23 @@ def sailbot_comms():
     receive_thread = Thread(target=recieve_data, daemon=True)
     receive_thread.start()
 
+def update_ui():
+    i=0
+    while True:
+        print("Drawing line...")
+        if(i%2==0):
+            eel.DrawLines([[51.508, -0.11, 51.503, -0.06]])
+        else:
+            eel.DrawLines([[51.508, -0.12, 51.503, -0.07]])
+        i+=1
+        sleep(1)
+
 
 def main():
     comms_thread = threading.Thread(target=sailbot_comms, daemon=True)
     comms_thread.start()
+    ui_update_thread = threading.Thread(target=update_ui, daemon=True)
+    ui_update_thread.start()
     say_hello_py('Python World!')
     eel.say_hello_js('Python World!')  # Call a Javascript function
     if CURRENT_OS == OS.WINDOWS:
