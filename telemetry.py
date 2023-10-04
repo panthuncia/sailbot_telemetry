@@ -8,12 +8,12 @@ from threading import Thread
 import time
 from time import sleep
 from enum import Enum
-
-connection_timeout = 1.0
+import random
 
 class OS(Enum):
     LINUX = 0
     WINDOWS = 1
+
 
 CURRENT_OS = OS.LINUX
 if os.name == "nt":
@@ -28,6 +28,7 @@ class Wind:
         self.speed = speed
         self.direction = direction
 
+
 class NodeStates:
     airmar_reader = 0
     battery_monitor = 0
@@ -36,6 +37,7 @@ class NodeStates:
     pwm_controller = 0
     serial_rc_receiver = 0
     trim_tab_comms = 0
+
 
 class BoatState:
     latitude = 0
@@ -61,8 +63,6 @@ class BoatState:
     node_states = NodeStates()
 
 
-current_node_states = NodeStates()
-
 # Set web files folder
 eel.init('web')
 
@@ -71,97 +71,131 @@ eel.init('web')
 def say_hello_py(x):
     print('Hello from %s' % x)
 
-#create server socket
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-if CURRENT_OS == OS.LINUX:
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-elif CURRENT_OS == OS.WINDOWS:
-    server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-server_socket.bind(("0.0.0.0", 1111))  # Bind to a specific address and port
-server_socket.listen(1)
-server_socket.setblocking(0)
-server_socket.settimeout(0.2)
 
+class UI:
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    current_node_states = NodeStates()
+    connection_timeout = 1.0
 
-def connect_to_sailbot():
-    # Create a socket client
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if CURRENT_OS == OS.LINUX:
-        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-    elif CURRENT_OS == OS.WINDOWS:
-        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # print("Creating connection")
-    ip = socket.gethostbyname("sailbot.netbird.cloud")
-    print("Sailbot ip is "+str(ip))
-    connected = False
-    while not connected:
-        try:
-            client_socket.connect((ip, 1111))  # Connect to the server
-            connected = True
-        except:
-            print("Connection failed, retrying...")
-            sleep(connection_timeout)
+    def __init__(self):
+        # create server socket
+        if CURRENT_OS == OS.LINUX:
+            self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        elif CURRENT_OS == OS.WINDOWS:
+            self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.server_socket.bind(("0.0.0.0", 1111))  # Bind to a specific address and port
+        self.server_socket.listen(1)
+        self.server_socket.setblocking(0)
+        self.server_socket.settimeout(0.2)
 
-    # Receive and deserialize data from the server
-    received_data_bytes = client_socket.recv(1024)
-    if len(received_data_bytes)>0:
-        try:
-            received_data = pickle.loads(received_data_bytes)
-        except EOFError:
-            print("Unexpected EOF in data- why does this happen?")
-    # print("Got data")
-    # Close the client socket
-    client_socket.close()
+    def connect_to_sailbot(self):
+        # Create a socket client
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if CURRENT_OS == OS.LINUX:
+            client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+        elif CURRENT_OS == OS.WINDOWS:
+            client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # print("Creating connection")
+        ip = socket.gethostbyname("sailbot.netbird.cloud")
+        print("Sailbot ip is " + str(ip))
+        connected = False
+        while not connected:
+            try:
+                client_socket.connect((ip, 1111))  # Connect to the server
+                connected = True
+            except:
+                print("Connection failed, retrying...")
+                sleep(self.connection_timeout)
 
-    # Process the received data
-    # print("Received Data:")
-    for data in received_data:
-        print(data)
-
-def recieve_data():
-    print("Receiving data")
-    last_data_time = time.time()
-    while True:
-        if time.time()-last_data_time>connection_timeout:
-            print("Connection to sailbot timed out, reconnecting...")
-            connect_to_sailbot()
-        read_sockets, write_sockets, error_sockets = select.select([server_socket], [], [], 0.2)
-        for sock in read_sockets:
-            this_client_socket, client_address = server_socket.accept()
-            print(f"Accepted connection from {client_address}")
-            this_client_socket.setblocking(0)
-            this_client_socket.settimeout(0.2)
-            # Receive and deserialize data from the server
-            received_data_bytes = this_client_socket.recv(1024)
-            if len(received_data_bytes)>0:
+        # Receive and deserialize data from the server
+        received_data_bytes = client_socket.recv(1024)
+        if len(received_data_bytes) > 0:
+            try:
                 received_data = pickle.loads(received_data_bytes)
-                print(received_data.latitude)
-            # Close the client socket
-            last_data_time = time.time()
-            this_client_socket.close()
+            except EOFError:
+                print("Unexpected EOF in data- why does this happen?")
+        # print("Got data")
+        # Close the client socket
+        client_socket.close()
+
+        # Process the received data
+        # print("Received Data:")
+        for data in received_data:
+            print(data)
+
+    def update_boat_state(self, new_state: BoatState):
+
+        # update node states
+        new_nodes_status = new_state.node_states
+        if new_nodes_status.network_comms != self.current_node_states.network_comms:
+            eel.NetworkCommsUp() if new_nodes_status.network_comms == 1 else eel.NetworkCommsDown()
+        if new_nodes_status.airmar_reader != self.current_node_states.airmar_reader:
+            eel.AirmarReaderUp() if new_nodes_status.airmar_reader == 1 else eel.AirmarReaderDown()
+        if new_nodes_status.battery_monitor != self.current_node_states.battery_monitor:
+            eel.BatteryMonitorUp() if new_nodes_status.battery_monitor == 1 else eel.BatteryMonitorDown()
+        if new_nodes_status.control_system != self.current_node_states.control_system:
+            eel.ControlSystemUp() if new_nodes_status.control_system == 1 else eel.ControlSystemDown()
+        if new_nodes_status.pwm_controller != self.current_node_states.pwm_controller:
+            eel.PWMControllerUp() if new_nodes_status.pwm_controller == 1 else eel.PWMControllerDown()
+        if new_nodes_status.trim_tab_comms != self.current_node_states.trim_tab_comms:
+            eel.TrimTabCommsUp() if new_nodes_status.trim_tab_comms == 1 else eel.TrimTabCommsDown()
+        self.current_node_states = new_nodes_status
+
+        #update boat info
+        eel.updateHeading(new_state.current_heading)
+        eel.updateBoatSpeed(new_state.speed_kmh)
+        eel.updateApparentWind(new_state.apparent_wind)
+        eel.updateTrueWind(new_state.true_wind)
 
 
-def sailbot_comms():
-    connect_to_sailbot()
-    receive_thread = Thread(target=recieve_data, daemon=True)
-    receive_thread.start()
+    def recieve_data(self):
+        print("Receiving data")
+        last_data_time = time.time()
+        while True:
+            if time.time() - last_data_time > self.connection_timeout:
+                print("Connection to sailbot timed out, reconnecting...")
+                self.connect_to_sailbot()
+            read_sockets, write_sockets, error_sockets = select.select([self.server_socket], [], [], 0.2)
+            for sock in read_sockets:
+                this_client_socket, client_address = self.server_socket.accept()
+                print(f"Accepted connection from {client_address}")
+                this_client_socket.setblocking(0)
+                this_client_socket.settimeout(0.2)
+                # Receive and deserialize data from the server
+                received_data_bytes = this_client_socket.recv(1024)
+                if len(received_data_bytes) > 0:
+                    received_data = pickle.loads(received_data_bytes)
+                    print(received_data.latitude)
+                # Close the client socket
+                last_data_time = time.time()
+                this_client_socket.close()
 
-def update_ui():
-    i=0
-    while True:
-        eel.NetworkCommsUp()
-        if(i%2==0):
-            eel.DrawLines([[51.508, -0.11, 51.503, -0.06]])
-        else:
-            eel.DrawLines([[51.508, -0.12, 51.503, -0.07]])
-        i+=1
-        sleep(1)
+    def sailbot_comms(self):
+        self.connect_to_sailbot()
+        receive_thread = Thread(target=self.recieve_data, daemon=True)
+        receive_thread.start()
 
+    def test_ui(self):
+        i = 0
+        while True:
+            eel.NetworkCommsUp()
+            if (i % 2 == 0):
+                eel.DrawLines([[51.508, -0.11, 51.503, -0.06]])
+            else:
+                eel.DrawLines([[51.508, -0.12, 51.503, -0.07]])
+            i += 1
+
+            eel.updateHeading(random.randrange(0, 360, 1))
+            eel.updateBoatSpeed(random.randrange(0, 20, 1))
+            eel.updateApparentWind(random.randrange(0, 360, 1))
+            eel.updateTrueWind(random.randrange(0, 360, 1))
+            sleep(1)
 
 def main():
-    comms_thread = threading.Thread(target=sailbot_comms, daemon=True)
+    ui = UI()
+    comms_thread = threading.Thread(target=ui.sailbot_comms, daemon=True)
     comms_thread.start()
-    ui_update_thread = threading.Thread(target=update_ui, daemon=True)
+    ui_update_thread = threading.Thread(target=ui.test_ui, daemon=True)
     ui_update_thread.start()
     say_hello_py('Python World!')
     eel.say_hello_js('Python World!')  # Call a Javascript function
@@ -169,7 +203,6 @@ def main():
         eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron.exe', '.'])
     elif CURRENT_OS == OS.LINUX:
         eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron', '.'])
-
 
 if __name__ == "__main__":
     main()

@@ -147,9 +147,12 @@
     </script>
 </div>
 <div id="panel-1"
-     style="position: absolute; top: 0px; left: 50%; transform: translateX(-50%); z-index: 1000; background-color: lightgrey; padding: 10px; border-radius: 20px; display: flex; align-items: center; overflow: auto; flex-direction: row">
-    <div id="gauge-container">
-        <canvas data-animation-duration="1500"
+     style="position: absolute; top: 0px; left: 50%; transform: translateX(-50%); z-index: 1000; background-color: lightgrey; padding: 0px; border-radius: 20px; display: flex; align-items: center; overflow: auto; flex-direction: row">
+    <div id="gauge-container" style="margin-right: 20px; margin-left: 20px">
+        <canvas id="compass"
+                width="180"
+                height="180"
+                data-animation-duration="1500"
                 data-animation-rule="linear"
                 data-border-inner-width="0"
                 data-border-middle-width="0"
@@ -184,9 +187,15 @@
                 data-value-box="false"
                 data-value-text-shadow="false"
         ></canvas>
+        <div style="text-align: center; margin-top: -15px">
+            <p>Heading</p>
+        </div>
     </div>
-    <div id="gauge-container-1">
-        <canvas data-animation-duration="1500"
+    <div id="gauge-container-1" style="margin-left: 20px; margin-right: 20px">
+        <canvas id="boat-speed"
+                width="170"
+                height="170"
+                data-animation-duration="1500"
                 data-animation-rule="linear"
                 data-border-inner-width="0"
                 data-border-middle-width="0"
@@ -208,12 +217,21 @@
                 data-type="radial-gauge"
                 data-units="Km/h"
         ></canvas>
+        <div style="text-align: center; margin-top: -15px">
+            <p>Speed</p>
+        </div>
     </div>
 </div>
 <div id="panel-2"
-     style="position: absolute; top: 150px; left: 0px; z-index: 1000; background-color: lightgrey; width: 200px; padding: 10px; border-radius: 20px">
+     style="position: absolute; top: 50%; left: 0px; transform: translateY(-50%); z-index: 1000; background-color: lightgrey; width: 200px; padding: 10px; border-radius: 20px">
     <div id="gauge-container-2">
-        <canvas data-animation-duration="1500"
+        <div style="text-align: center; margin-bottom: -15px">
+            <p>Apparent wind</p>
+        </div>
+        <canvas id="wind-apparent"
+                width="150"
+                height="150"
+                data-animation-duration="1500"
                 data-animation-rule="linear"
                 data-border-inner-width="0"
                 data-border-middle-width="0"
@@ -250,7 +268,13 @@
         ></canvas>
     </div>
     <div id="gauge-container-3">
-        <canvas data-animation-duration="1500"
+        <div style="text-align: center; margin-bottom: -15px">
+            <p>True wind</p>
+        </div>
+        <canvas id="wind-true"
+                width="150"
+                height="150"
+                data-animation-duration="1500"
                 data-animation-rule="linear"
                 data-border-inner-width="0"
                 data-border-middle-width="0"
@@ -288,21 +312,37 @@
     </div>
 </div>
 <script>
-    var gauges = document.getElementsByTagName('canvas');
-    var compass = gauges[0];
-    var speed = gauges[1];
+    // var gauges = document.getElementsByTagName('canvas');
+    // var compass = gauges[0];
+    // var speed = gauges[1];
 
-    function update_heading_js(x) {
+    var compass = document.getElementById("compass")
+    var boat_speed = document.getElementById("boat-speed")
+    var wind_apparent = document.getElementById("wind-apparent")
+    var wind_true = document.getElementById("wind-true")
+
+    function updateHeading(x) {
         compass.setAttribute("data-value", x);
     }
+    eel.expose(updateHeading);
 
-    eel.expose(update_heading_js);
-
-    function update_speed_js(x) {
-        speed.setAttribute("data-value", x);
+    function updateBoatSpeed(x) {
+        boat_speed.setAttribute("data-value", x);
     }
+    eel.expose(updateBoatSpeed);
 
-    eel.expose(update_speed_js);
+    function updateApparentWind(x){
+        wind_apparent.setAttribute("data-value", x)
+    }
+    eel.expose(updateApparentWind)
+
+    function updateTrueWind(x){
+        wind_true.setAttribute("data-value", x)
+    }
+    eel.expose(updateTrueWind)
+
+
+
 
 </script>
 </body>
