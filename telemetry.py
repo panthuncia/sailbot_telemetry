@@ -181,8 +181,10 @@ class UI:
             eel.NetworkCommsUp()
             if (i % 2 == 0):
                 eel.DrawLines([[51.508, -0.11, 51.503, -0.06]])
+                eel.updateBoatPosition(51.504, -0.08)
             else:
                 eel.DrawLines([[51.508, -0.12, 51.503, -0.07]])
+                eel.updateBoatPosition(51.505, -0.09)
             i += 1
 
             eel.updateHeading(random.randrange(0, 360, 1))
