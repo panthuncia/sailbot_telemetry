@@ -108,20 +108,25 @@ class UI:
                 sleep(self.connection_timeout)
 
         # Receive and deserialize data from the server
-        received_data_bytes = client_socket.recv(1024)
-        if len(received_data_bytes) > 0:
-            try:
-                received_data = pickle.loads(received_data_bytes)
-            except EOFError:
-                print("Unexpected EOF in data- why does this happen?")
+        # received_data_bytes = client_socket.recv(1024)
+        # received_data=""
+        # if len(received_data_bytes) > 0:
+        #     try:
+        #         received_data = pickle.loads(received_data_bytes)
+        #     except EOFError:
+        #         print("Unexpected EOF in data- why does this happen?")
+        # else:
+        #     print("Recieved data is empty?")
         # print("Got data")
         # Close the client socket
-        client_socket.close()
+        #client_socket.close()
 
         # Process the received data
         # print("Received Data:")
-        for data in received_data:
-            print(data)
+        # for data in received_data:
+        #     print(data)
+
+        return client_socket
 
     def update_boat_state(self, new_state: BoatState):
 
@@ -148,32 +153,26 @@ class UI:
         eel.updateTrueWind(new_state.true_wind)
 
 
-    def recieve_data(self):
+    def sailbot_comms(self):
+        client_socket = self.connect_to_sailbot()
+        client_socket.setblocking(0)
+        client_socket.settimeout(0.2)
         print("Receiving data")
         last_data_time = time.time()
+        received_data_bytes=[]
         while True:
             if time.time() - last_data_time > self.connection_timeout:
                 print("Connection to sailbot timed out, reconnecting...")
-                self.connect_to_sailbot()
-            read_sockets, write_sockets, error_sockets = select.select([self.server_socket], [], [], 0.2)
-            for sock in read_sockets:
-                this_client_socket, client_address = self.server_socket.accept()
-                print(f"Accepted connection from {client_address}")
-                this_client_socket.setblocking(0)
-                this_client_socket.settimeout(0.2)
-                # Receive and deserialize data from the server
-                received_data_bytes = this_client_socket.recv(1024)
-                if len(received_data_bytes) > 0:
-                    received_data = pickle.loads(received_data_bytes)
-                    print(received_data.latitude)
-                # Close the client socket
+                client_socket = self.connect_to_sailbot()
+            try:
+                received_data_bytes = client_socket.recv(1024)
+            except:
+                pass
+            if len(received_data_bytes) > 0:
+                received_data = pickle.loads(received_data_bytes)
                 last_data_time = time.time()
-                this_client_socket.close()
+                print(received_data.latitude)
 
-    def sailbot_comms(self):
-        self.connect_to_sailbot()
-        receive_thread = Thread(target=self.recieve_data, daemon=True)
-        receive_thread.start()
 
     def test_ui(self):
         i = 0
@@ -197,8 +196,8 @@ def main():
     ui = UI()
     comms_thread = threading.Thread(target=ui.sailbot_comms, daemon=True)
     comms_thread.start()
-    ui_update_thread = threading.Thread(target=ui.test_ui, daemon=True)
-    ui_update_thread.start()
+    #ui_update_thread = threading.Thread(target=ui.test_ui, daemon=True)
+    #ui_update_thread.start()
     say_hello_py('Python World!')
     eel.say_hello_js('Python World!')  # Call a Javascript function
     if CURRENT_OS == OS.WINDOWS:
