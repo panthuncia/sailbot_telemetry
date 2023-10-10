@@ -190,14 +190,14 @@ class UI:
             eel.updateBoatSpeed(random.randrange(0, 20, 1))
             eel.updateApparentWind(random.randrange(0, 360, 1))
             eel.updateTrueWind(random.randrange(0, 360, 1))
-            sleep(1)
+            sleep(4)
 
 def main():
     ui = UI()
     comms_thread = threading.Thread(target=ui.sailbot_comms, daemon=True)
     comms_thread.start()
-    #ui_update_thread = threading.Thread(target=ui.test_ui, daemon=True)
-    #ui_update_thread.start()
+    ui_update_thread = threading.Thread(target=ui.test_ui, daemon=True)
+    ui_update_thread.start()
     say_hello_py('Python World!')
     eel.say_hello_js('Python World!')  # Call a Javascript function
     if CURRENT_OS == OS.WINDOWS:

@@ -37,3 +37,8 @@ body {
 .node_status{
     background-color: red; color: blue; font-weight: bold; width: 120px; height: 50px; display: flex; align-items: center; justify-content: center;
 }
+
+.rotate-marker {
+  transform-origin: center;
+  transform: rotate(45deg); /* You can change the angle as needed */
+}

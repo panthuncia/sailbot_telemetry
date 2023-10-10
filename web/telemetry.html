@@ -14,6 +14,9 @@
     <link href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" rel="stylesheet"/>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="/dependencies/canvas-gauges.js" type="text/javascript"></script>
+    <script src="/dependencies/leaflet-triangle-marker.js" type="text/javascript"></script>
+    <script src="/dependencies/leaflet-rotate-marker.js" type="text/javascript"></script>
+
     <script type="text/javascript">
         function print_number_js(x) {
             console.log(x);
@@ -41,7 +44,6 @@
                 const long2 = lines[i][3];
 
                 // Define the coordinates of your points
-                console.log("In DrawLine")
                 const pointA = L.latLng(lat1, long1);
                 const pointB = L.latLng(lat2, long2);
                 // Create an array of coordinates for the path
@@ -72,16 +74,27 @@
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
+    
+    //heading marker
+    
+
     //boat icon
-    var customIcon = L.icon({
-        iconUrl: 'assets/boat.png', // Path to your custom icon image
+    var arrowIcon = L.icon({
+        iconUrl: 'assets/arrow.png', // Path to your custom icon image
         iconSize: [32, 32],  // Size of the icon
         iconAnchor: [16, 32] // Anchor point of the icon (usually the bottom center)
     });
-    var boatMarker = L.marker([51.505, -0.09], { icon: customIcon }).addTo(map);
+    var boatIcon = L.icon({
+        iconUrl: 'assets/boat.png', // Path to your custom icon image
+        iconSize: [32, 32],  // Size of the icon
+        iconAnchor: [16, 16] // Anchor point of the icon (usually the bottom center)
+    });
+    var arrowMarker = L.marker([51.505, -0.09], { icon: arrowIcon, rotationAngle: 90, rotationOrigin: "bottom center" }).addTo(map);
+    var boatMarker = L.marker([51.505, -0.09], { icon: boatIcon, rotationOrigin: "center" }).addTo(map);
     function updateBoatPosition(newLat, newLong){
         var newLatLng = L.latLng(newLat, newLong)
         boatMarker.setLatLng(newLatLng)
+        arrowMarker.setLatLng(newLatLng)
     }
     eel.expose(updateBoatPosition)
 </script>
@@ -334,7 +347,10 @@
     var wind_true = document.getElementById("wind-true")
 
     function updateHeading(x) {
+        console.log(x)
         compass.setAttribute("data-value", x);
+        //boatMarker.setRotationAngle(x)
+        arrowMarker.setRotationAngle(x)
     }
     eel.expose(updateHeading);
 
