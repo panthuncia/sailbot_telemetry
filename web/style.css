@@ -35,10 +35,41 @@ body {
 }
 
 .node_status{
-    background-color: red; color: blue; font-weight: bold; width: 120px; height: 50px; display: flex; align-items: center; justify-content: center;
+  background-color:red;
+  border: 3px solid;
+  border-width: 3px;
+  border-color: transparent;
+  color: blue;
+  font-weight: bold;
+  width: 120px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
 }
 
-.rotate-marker {
-  transform-origin: center;
-  transform: rotate(45deg); /* You can change the angle as needed */
+#contextMenu {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#contextMenu ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+#contextMenu li {
+  padding: 5px 10px;
+  cursor: pointer;
+  text-align: center;
+  user-select: none;
+  float:right;
+}
+
+#contextMenu li:hover {
+  background-color: #f0f0f0;
 }

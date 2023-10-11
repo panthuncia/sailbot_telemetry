@@ -212,7 +212,7 @@
                 data-value-box="false"
                 data-value-text-shadow="false"
         ></canvas>
-        <div style="text-align: center; margin-top: -15px">
+        <div style="text-align: center; margin-top: -15px; user-select: none;">
             <p>Heading</p>
         </div>
     </div>
@@ -242,7 +242,7 @@
                 data-type="radial-gauge"
                 data-units="Km/h"
         ></canvas>
-        <div style="text-align: center; margin-top: -15px">
+        <div style="text-align: center; margin-top: -15px; user-select: none;">
             <p>Speed</p>
         </div>
     </div>
@@ -250,7 +250,7 @@
 <div id="panel-2"
      style="position: absolute; top: 50%; left: 0px; transform: translateY(-50%); z-index: 1000; background-color: lightgrey; width: 200px; padding: 10px; border-radius: 20px">
     <div id="gauge-container-2">
-        <div style="text-align: center; margin-bottom: -15px">
+        <div style="text-align: center; margin-bottom: -15px; user-select: none;">
             <p>Apparent wind</p>
         </div>
         <canvas id="wind-apparent"
@@ -293,7 +293,7 @@
         ></canvas>
     </div>
     <div id="gauge-container-3">
-        <div style="text-align: center; margin-bottom: -15px">
+        <div style="text-align: center; margin-bottom: -15px; user-select: none;">
             <p>True wind</p>
         </div>
         <canvas id="wind-true"
@@ -336,6 +336,67 @@
         ></canvas>
     </div>
 </div>
+<div id="contextMenu" style="display: none; z-index: 1000;">
+    <ul>
+        <li>Restart</li>
+    </ul>
+</div>
+<script>
+    const statusDivs = document.getElementsByClassName("node_status")
+    const contextMenu = document.getElementById('contextMenu');
+
+    function onSelect(e, selectedDiv){
+        e.preventDefault(); // Prevent the default context menu
+        
+         // Get the position of the div and the size of the context menu
+        const divRect = selectedDiv.getBoundingClientRect();
+        const menuRect = contextMenu.getBoundingClientRect();
+
+        // Calculate the position for the context menu
+        let left = e.pageX;
+        let top = e.pageY;
+
+        // Check if the menu would go off the right edge of the screen
+        width = Math.max(menuRect.width, 100)
+        if (left +  width> window.innerWidth) {
+            left = window.innerWidth - width;
+        }
+
+        // Check if the menu would go off the bottom edge of the screen
+        if (top + menuRect.height > window.innerHeight) {
+            top = window.innerHeight - menuRect.height;
+        }
+
+        contextMenu.style.display = 'block';
+        contextMenu.style.left = `${left}px`;
+        contextMenu.style.top = `${top}px`;
+        
+        selectedDiv.style.borderColor = '#3498db'; // Add your preferred blue shading color
+
+        //remove shading from unselected divs
+        for (const div of statusDivs){
+            if (!(div.id === selectedDiv.id)){
+                div.style.borderColor = 'transparent';
+            }
+        }
+    }
+
+    //strange function calls necessary to make border change work when text is clicked instead of background
+    for (const div of statusDivs){
+        div.addEventListener('contextmenu', (e) => {
+            onSelect(e, div)
+        });
+    }
+
+    // Hide the context menu when clicking outside of it
+    document.addEventListener('click', () => {
+        contextMenu.style.display = 'none';
+        // Remove the shading effect from the divs
+        for (const div of statusDivs){
+            div.style.borderColor = 'transparent';
+        }
+    });
+</script>
 <script>
     // var gauges = document.getElementsByTagName('canvas');
     // var compass = gauges[0];
