@@ -170,7 +170,7 @@
             document.getElementById("TrimTabComms").style.backgroundColor = "red";
         }
         eel.expose(TrimTabCommsDown);
-        for (const div of document.getElementsByClassName("node_status")){
+        for (const div of statusDivs){
             eel.expose(window[upName], upName)
             window[div.id+"_restart"] = () => {
                 console.log("Called function of "+div.id);
