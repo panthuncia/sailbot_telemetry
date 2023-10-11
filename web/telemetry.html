@@ -102,73 +102,81 @@
   <p>This is a text box overlay.</p>
 </div>-->
 <div id="node-status-container" style="position: absolute; top: 50%; right: 0; transform: translateY(-50%); z-index: 1000;">
-    <div class="node_status" id="network-comms-status">
+    <div class="node_status" id="NetworkComms">
         <p>network_comms</p>
     </div>
-    <div class="node_status" id="airmar-reader-status">
+    <div class="node_status" id="AirmarReader">
         <p>airmar_reader</p>
     </div>
-    <div class="node_status" id="battery-monitor-status">
+    <div class="node_status" id="BatteryMonitor">
         <p>battery_monitor</p>
     </div>
-    <div class="node_status" id="control-system-status">
+    <div class="node_status" id="ControlSystem">
         <p>control_system</p>
     </div>
-    <div class="node_status" id="pwm-controller-status">
+    <div class="node_status" id="PWMController">
         <p>pwm_controller</p>
     </div>
-    <div class="node_status" id="trim-tab-comms-status">
+    <div class="node_status" id="TrimTabComms">
         <p>trim_tab_comms</p>
     </div>
     <script>
+        var statusDivs = document.getElementsByClassName("node_status")
         function NetworkCommsUp(){
-            document.getElementById("network-comms-status").style.backgroundColor = "green";
+            document.getElementById("NetworkComms").style.backgroundColor = "green";
         }
         eel.expose(NetworkCommsUp);
         function NetworkCommsDown(){
-            document.getElementById("network-comms-status").style.backgroundColor = "red";
+            document.getElementById("NetworkComms").style.backgroundColor = "red";
         }
         eel.expose(NetworkCommsDown);
         function AirmarReaderUp(){
-            document.getElementById("airmar-reader-status").style.backgroundColor = "green";
+            document.getElementById("AirmarReader").style.backgroundColor = "green";
         }
         eel.expose(AirmarReaderUp);
         function AirmarReaderDown(){
-            document.getElementById("airmar-reader-status").style.backgroundColor = "red";
+            document.getElementById("AirmarReader").style.backgroundColor = "red";
         }
         eel.expose(AirmarReaderDown)
         function BatteryMonitorUp(){
-            document.getElementById("battery-monitor-status").style.backgroundColor = "green";
+            document.getElementById("BatteryMonitor").style.backgroundColor = "green";
         }
         eel.expose(BatteryMonitorUp)
         function BatteryMonitorDown(){
-            document.getElementById("battery-monitor-status").style.backgroundColor = "red";
+            document.getElementById("BatteryMonitor").style.backgroundColor = "red";
         }
         eel.expose(BatteryMonitorDown);
         function ControlSystemUp(){
-            document.getElementById("control-system-status").style.backgroundColor = "green";
+            document.getElementById("ControlSystem").style.backgroundColor = "green";
         }
         eel.expose(ControlSystemUp);
         function ControlSystemDown(){
-            document.getElementById("control-system-status").style.backgroundColor = "red";
+            document.getElementById("ControlSystem").style.backgroundColor = "red";
         }
         eel.expose(ControlSystemDown);
         function PWMControllerUp(){
-            document.getElementById("pwm-controller-status").style.backgroundColor = "green";
+            document.getElementById("PWMController").style.backgroundColor = "green";
         }
         eel.expose(PWMControllerUp);
         function PWMControllerDown(){
-            document.getElementById("pwm-controller-status").style.backgroundColor = "red";
+            document.getElementById("PWMController").style.backgroundColor = "red";
         }
         eel.expose(PWMControllerDown);
         function TrimTabCommsUp(){
-            document.getElementById("trim-tab-comms-status").style.backgroundColor = "green";
+            document.getElementById("TrimTabComms").style.backgroundColor = "green";
         }
         eel.expose(TrimTabCommsUp);
         function TrimTabCommsDown(){
-            document.getElementById("trim-tab-comms-status").style.backgroundColor = "red";
+            document.getElementById("TrimTabComms").style.backgroundColor = "red";
         }
         eel.expose(TrimTabCommsDown);
+        for (const div of document.getElementsByClassName("node_status")){
+            eel.expose(window[upName], upName)
+            window[div.id+"_restart"] = () => {
+                console.log("Called function of "+div.id);
+            }
+        }
+        
     </script>
 </div>
 <div id="panel-1"
@@ -342,9 +350,8 @@
     </ul>
 </div>
 <script>
-    const statusDivs = document.getElementsByClassName("node_status")
     const contextMenu = document.getElementById('contextMenu');
-
+    let selectedDivID = ""
     function onSelect(e, selectedDiv){
         e.preventDefault(); // Prevent the default context menu
         
@@ -372,7 +379,7 @@
         contextMenu.style.top = `${top}px`;
         
         selectedDiv.style.borderColor = '#3498db'; // Add your preferred blue shading color
-
+        selectedDivID = selectedDiv.id;
         //remove shading from unselected divs
         for (const div of statusDivs){
             if (!(div.id === selectedDiv.id)){
@@ -387,6 +394,17 @@
             onSelect(e, div)
         });
     }
+
+    const menuItems = contextMenu.querySelectorAll('li');
+
+    menuItems.forEach((item) => {
+        item.addEventListener('click', () => {
+            alert(`Restarting `+selectedDivID);
+            //cursed
+            window[selectedDivID+"_restart"]();
+            contextMenu.style.display = 'none'; // Hide the context menu
+        });
+    });
 
     // Hide the context menu when clicking outside of it
     document.addEventListener('click', () => {
