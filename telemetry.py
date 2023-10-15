@@ -198,8 +198,6 @@ def main():
     comms_thread.start()
     ui_update_thread = threading.Thread(target=ui.test_ui, daemon=True)
     ui_update_thread.start()
-    say_hello_py('Python World!')
-    eel.say_hello_js('Python World!')  # Call a Javascript function
     if CURRENT_OS == OS.WINDOWS:
         eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron.exe', '.'])
     elif CURRENT_OS == OS.LINUX:
