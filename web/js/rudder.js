@@ -1,44 +1,17 @@
-
 {
-    // Get a reference to the canvas element
-let canvas = document.getElementById('trimTabCanvas');
-let barCanvas = document.getElementById('trimTabBarCanvas');
-let image = document.getElementById('wing_container')
-canvas.width = image.getBoundingClientRect().width;
-console.log("width: "+String(canvas.width))
-
-// Get a 2D drawing context
+let canvas = document.getElementById('rudderCanvas');
 let ctx = canvas.getContext('2d');
-let barCtx = barCanvas.getContext('2d');
-
-barCtx.strokeStyle = 'black';  // Line color
-barCtx.lineWidth = 2;         // Line width
-
-// Draw the line
-barCtx.beginPath();
-let barBox = canvas.getBoundingClientRect();
-barCtx.moveTo(barBox.width/2, 0);
-barCtx.lineTo(barBox.width/2, barBox.height);
-barCtx.setLineDash([5, 5]);
-barCtx.stroke();
-
-// Set line properties (optional)
-ctx.strokeStyle = 'blue';  // Line color
-ctx.lineWidth = 2;         // Line width
-
-// Draw the line
 ctx.beginPath();
 let box = canvas.getBoundingClientRect();
-let len = 40
+let len = 50
 let theta = Math.PI/2
 ctx.moveTo(box.width/2, 0);
 let currentTargetX = box.width/2+len*Math.cos(theta);
 let currentTargetY = len*Math.sin(theta)
 ctx.lineTo(currentTargetX, currentTargetY);
+ctx.strokeStyle = 'blue';  // Line color
+ctx.lineWidth = 2;         // Line width
 ctx.stroke();
-
-var isDragging = false;
-var offsetX, offsetY;
 
 function drawCircle(x, y, radius) {
     ctx.beginPath();
@@ -107,4 +80,5 @@ canvas.addEventListener('mousemove', function (e) {
 window.addEventListener('mouseup', function () {
     isDragging = false;
 });
+
 }
