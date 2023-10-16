@@ -10,6 +10,10 @@ from time import sleep
 from enum import Enum
 import random
 from telemetry_messages.messages import *
+import pygame
+import math
+
+HALF_PI = math.pi/2
 
 class OS(Enum):
     LINUX = 0
@@ -63,7 +67,8 @@ class UI:
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     current_node_states = NodeStates()
     connection_timeout = 1.0
-
+    clock = pygame.time.Clock()
+    
     def __init__(self):
         # create server socket
         if CURRENT_OS == OS.LINUX:
@@ -207,6 +212,56 @@ class UI:
             eel.updateApparentWind(random.randrange(0, 360, 1))
             eel.updateTrueWind(random.randrange(0, 360, 1))
             sleep(4)
+    
+    def controller_input(self):
+        #init pygame things
+        pygame.init()
+        print("Joysticks: " + str(pygame.joystick.get_count()))
+        
+        while(pygame.joystick.get_count()==0):
+            sleep(0.5)
+            print("no controller found...")
+            
+
+        my_joystick = pygame.joystick.Joystick(0)
+        my_joystick.init()
+        trimtab_position = 0
+        rudder_position = 0
+        last_time = time.time()
+        while True:
+            trimtab_stick_value = -my_joystick.get_axis(0)
+            rudder_stick_value = -my_joystick.get_axis(2)
+
+            #input rejection for stick drift
+            if(0.1>trimtab_stick_value>-0.1):
+                trimtab_stick_value=0
+            if(0.1>rudder_stick_value>-0.1):
+                rudder_stick_value=0
+            
+            current_time = time.time()
+            new_trimtab_position=trimtab_position+(current_time-last_time)*trimtab_stick_value
+            if(trimtab_position>HALF_PI):
+                new_trimtab_position = HALF_PI
+            if(trimtab_position<-HALF_PI):
+                new_trimtab_position = -HALF_PI
+
+            new_rudder_position=rudder_position+(current_time-last_time)*rudder_stick_value
+            if(rudder_position>HALF_PI):
+                new_rudder_position = HALF_PI
+            if(rudder_position<-HALF_PI):
+                new_rudder_position = -HALF_PI
+            
+            if(rudder_position!=new_rudder_position):
+                eel.set_rudder_angle(new_rudder_position)
+                rudder_position = new_rudder_position
+
+            if(trimtab_position!=new_trimtab_position):
+                eel.set_trimtab_angle(new_trimtab_position)
+                trimtab_position = new_trimtab_position
+
+            pygame.event.pump()
+            last_time = current_time
+            self.clock.tick(60)
 
 def main():
     ui = UI()
@@ -214,6 +269,8 @@ def main():
     comms_thread.start()
     ui_update_thread = threading.Thread(target=ui.test_ui, daemon=True)
     ui_update_thread.start()
+    controller_input_thread = threading.Thread(target=ui.controller_input, daemon=True)
+    controller_input_thread.start()
     if CURRENT_OS == OS.WINDOWS:
         eel.start('telemetry.html', mode='custom', cmdline_args=['node_modules/electron/dist/electron.exe', '.'])
     elif CURRENT_OS == OS.LINUX:

@@ -69,6 +69,26 @@ canvas.addEventListener('mousedown', function (e) {
     }
 });
 
+function set_trimtab_angle_internal(currentTheta){
+    currentTargetX = box.width/2+len*Math.cos(currentTheta)
+    currentTargetY = len*Math.sin(currentTheta)
+    console.log("current x: "+String(currentTargetX+" Current y: "+String(currentTargetY)))
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+    ctx.beginPath()
+    ctx.strokeStyle = 'blue';  // Line color
+    ctx.lineWidth = 2;         // Line width
+    ctx.moveTo(box.width/2, 0);
+    ctx.lineTo(currentTargetX, currentTargetY);
+    ctx.stroke();
+    ctx.closePath();
+    drawCircle(currentTargetX, currentTargetY, circleRadius);
+}
+
+function set_trimtab_angle(currentTheta){
+    set_trimtab_angle_internal(currentTheta+Math.PI/2)
+}
+eel.expose(set_trimtab_angle)
+
 canvas.addEventListener('mousemove', function (e) {
     if (isDragging) {
         var mouseX = e.clientX - canvas.getBoundingClientRect().left;
@@ -89,19 +109,9 @@ canvas.addEventListener('mousemove', function (e) {
             currentTheta-=Math.PI/2
         }
         eel.set_trimtab_angle(currentTheta)
+        set_trimtab_angle_internal(currentTheta)
         console.log("Current theta: "+currentTheta)
-        currentTargetX = box.width/2+len*Math.cos(currentTheta)
-        currentTargetY = len*Math.sin(currentTheta)
-        console.log("current x: "+String(currentTargetX+" Current y: "+String(currentTargetY)))
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
-        ctx.beginPath()
-        ctx.strokeStyle = 'blue';  // Line color
-        ctx.lineWidth = 2;         // Line width
-        ctx.moveTo(box.width/2, 0);
-        ctx.lineTo(currentTargetX, currentTargetY);
-        ctx.stroke();
-        ctx.closePath();
-        drawCircle(currentTargetX, currentTargetY, circleRadius);
+       
     }
 });
 
