@@ -62,6 +62,7 @@ canvas.addEventListener('mousemove', function (e) {
             currentTheta-=Math.PI/2
         }
         console.log("Current theta: "+currentTheta)
+        eel.set_rudder_angle(currentTheta)
         currentTargetX = box.width/2+len*Math.cos(currentTheta)
         currentTargetY = len*Math.sin(currentTheta)
         console.log("current x: "+String(currentTargetX+" Current y: "+String(currentTargetY)))

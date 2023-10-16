@@ -88,6 +88,7 @@ canvas.addEventListener('mousemove', function (e) {
         if(secondQuadrant){
             currentTheta-=Math.PI/2
         }
+        eel.set_trimtab_angle(currentTheta)
         console.log("Current theta: "+currentTheta)
         currentTargetX = box.width/2+len*Math.cos(currentTheta)
         currentTargetY = len*Math.sin(currentTheta)

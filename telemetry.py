@@ -30,6 +30,35 @@ def say_hello_py(x):
     print('Hello from %s' % x)
 
 
+class ControlStatus:
+    current_rudder_angle = 0
+    current_rudder_angle_lock = threading.Lock()
+    current_trimtab_angle = 0
+    current_trimtab_angle_lock = threading.Lock()
+
+current_controls = ControlStatus()
+
+@eel.expose
+def set_rudder_angle(x):
+    with current_controls.current_rudder_angle_lock:
+        current_controls.current_rudder_angle = x
+
+def get_rudder_angle():
+    with current_controls.current_rudder_angle_lock:
+        return current_controls.current_rudder_angle
+
+
+@eel.expose
+def set_trimtab_angle(x):
+    print("Updating trimtab angle to: "+str(x))
+    with current_controls.current_trimtab_angle_lock:
+        current_controls.current_trimtab_angle=x
+
+def get_trimtab_angle():
+    with current_controls.current_trimtab_angle_lock:
+        return current_controls.current_trimtab_angle
+
+
 class UI:
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     current_node_states = NodeStates()
@@ -54,7 +83,7 @@ class UI:
         elif CURRENT_OS == OS.WINDOWS:
             client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # print("Creating connection")
-        ip = socket.gethostbyname("sailbot.netbird.cloud")
+        ip = socket.gethostbyname("sailbot-orangepi.netbird.cloud")
         print("Sailbot ip is " + str(ip))
         connected = False
         while not connected:
@@ -114,10 +143,12 @@ class UI:
     def sailbot_comms(self):
         client_socket = self.connect_to_sailbot()
         client_socket.setblocking(0)
-        client_socket.settimeout(0.2)
+        client_socket.settimeout(0.1)
         print("Receiving data")
         last_data_time = time.time()
         received_data_bytes=[]
+        last_trimtab_angle = get_trimtab_angle()
+        last_rudder_angle = get_rudder_angle()
         while True:
             if time.time() - last_data_time > self.connection_timeout:
                 print("Connection to sailbot timed out, reconnecting...")
@@ -126,10 +157,37 @@ class UI:
                 received_data_bytes = client_socket.recv(1024)
             except:
                 pass
+            current_tt_angle = get_trimtab_angle()
+            current_rudder_angle = get_rudder_angle()
+            #update trim tab
+            if(last_trimtab_angle!=current_tt_angle):
+                command = ControlCommand()
+                command.control_type = ControlType.TRIM_TAB
+                command.control_value = current_tt_angle
+                data_bytes = pickle.dumps(command)
+                try:
+                    print("sending trimtab update")
+                    client_socket.send(data_bytes)
+                except:
+                    self.get_logger().warn(f"Lost connection to sailbot!")
+                last_trimtab_angle = current_tt_angle
+            #update rudder
+            if(last_rudder_angle!=current_rudder_angle):
+                command = ControlCommand()
+                command.control_type = ControlType.RUDDER
+                command.control_value = current_rudder_angle
+                data_bytes = pickle.dumps(command)
+                try:
+                    print("sending rudder update")
+                    client_socket.send(data_bytes)
+                except:
+                    self.get_logger().warn(f"Lost connection to sailbot!")
+                last_rudder_angle = current_rudder_angle
+
             if len(received_data_bytes) > 0:
                 received_data = pickle.loads(received_data_bytes)
                 last_data_time = time.time()
-                print(received_data.latitude)
+                #print(received_data.latitude)
 
 
     def test_ui(self):
