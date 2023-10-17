@@ -219,6 +219,8 @@ class UI:
         print("Joysticks: " + str(pygame.joystick.get_count()))
         
         while(pygame.joystick.get_count()==0):
+            pygame.joystick.quit()
+            pygame.joystick.init()
             sleep(0.5)
             print("no controller found...")
             
@@ -229,6 +231,15 @@ class UI:
         rudder_position = 0
         last_time = time.time()
         while True:
+            if(pygame.joystick.get_count()==0):
+                pygame.joystick.quit()
+                pygame.joystick.init()
+                if(pygame.joystick.get_count()>0):
+                    my_joystick = pygame.joystick.Joystick(0)
+                    my_joystick.init()
+                else:
+                    continue
+
             trimtab_stick_value = -my_joystick.get_axis(0)
             rudder_stick_value = -my_joystick.get_axis(2)
 
