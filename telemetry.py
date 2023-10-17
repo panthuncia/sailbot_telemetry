@@ -221,8 +221,7 @@ class UI:
         while(pygame.joystick.get_count()==0):
             pygame.joystick.quit()
             pygame.joystick.init()
-            sleep(0.5)
-            print("no controller found...")
+            sleep(0.1)
             
 
         my_joystick = pygame.joystick.Joystick(0)
@@ -238,6 +237,7 @@ class UI:
                     my_joystick = pygame.joystick.Joystick(0)
                     my_joystick.init()
                 else:
+                    sleep(0.1)
                     continue
 
             trimtab_stick_value = -my_joystick.get_axis(0)
@@ -264,10 +264,12 @@ class UI:
             
             if(rudder_position!=new_rudder_position):
                 eel.set_rudder_angle(new_rudder_position)
+                set_rudder_angle(new_rudder_position)
                 rudder_position = new_rudder_position
 
             if(trimtab_position!=new_trimtab_position):
                 eel.set_trimtab_angle(new_trimtab_position)
+                set_trimtab_angle(new_trimtab_position)
                 trimtab_position = new_trimtab_position
 
             pygame.event.pump()
