@@ -1,0 +1,2 @@
+# sailbot_telemetry
+DEPRECATED
